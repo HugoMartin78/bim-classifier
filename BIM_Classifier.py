@@ -63,7 +63,6 @@ transformer = TfidfTransformer()
 classifiers = [
     SGDClassifier(alpha = 1e-4),
     DecisionTreeClassifier(max_depth=None),
-    KNeighborsClassifier(120),
     SVC(gamma=2, C=1),
     RandomForestClassifier(n_estimators=60),
     GaussianNB(),
