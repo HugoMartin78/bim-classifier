@@ -43,13 +43,12 @@ y[y == 'M'] = 4
 # récuperation des numéroes de modèles.
 models = data[:,6].astype(numpy.float)
 
-# data ne garde que les variables
-data = numpy.delete(data,[5,6],1)
+# data ne garde que la variable nom
+data = numpy.delete(data,[1,2,3,4,5,6],1)
 
 # Pour les trois première colonnes (TXT) on ne garde que les caractères standards.
 for i in range(0,len(data)):
-    for j in [0,1,2]:
-        data[i,j] = re.sub('[^AZERTYUIOPQSDFGHJKLMWXCVBNazertyuiopqsdfghjklmwxcvbn]', '', data[i,j]).lower()
+        data[i] = re.sub('[^AZERTYUIOPQSDFGHJKLMWXCVBNazertyuiopqsdfghjklmwxcvbn]', '', data[i]).lower()
         
 # Delcaration des pre-processing / classifier
 ngram_vectorizer = CountVectorizer(analyzer='char_wb', ngram_range=(3, 3), min_df=0)
@@ -80,26 +79,13 @@ for clf in classifiers:
         
         Test = data[numpy.where(models == i)]
         L_Test = y[numpy.where(models == i)]
-        
-        # On recupere en premier les variables numérique
-        Num_weight = 0.03
-        Num_train = Num_weight * sparse.csr_matrix(numpy.delete(Sample,[0,1,2],1).astype(numpy.float))
-        Num_test = Num_weight * sparse.csr_matrix(numpy.delete(Test,[0,1,2],1).astype(numpy.float))
-    
-        tfidf = numpy.array([Num_train])
-        T_tfidf = numpy.array([Num_test])       
-        
+ 
         # Traitement du Text tri-gram + tfidf pour chaque variable textuelle
-        for j in[0,1,2]:
-            ngram = ngram_vectorizer.fit_transform(Sample[:,j])
-            T_ngram = ngram_vectorizer.transform(Test[:,j])
-            
-            tfidf = numpy.append(tfidf,transformer.fit_transform(ngram)) 
-            T_tfidf = numpy.append(T_tfidf,transformer.transform(T_ngram))
+        ngram = ngram_vectorizer.fit_transform(Sample)
+        T_ngram = ngram_vectorizer.transform(Test)
         
-        # On stack toutes les variables entre elles
-        X_train = hstack(tfidf)
-        X_test = hstack(T_tfidf)
+        X_train = transformer.fit_transform(ngram)
+        X_test = transformer.transform(T_ngram)
         
         # On classe
         clf.fit(X_train, L_Sample.astype(numpy.int32))
